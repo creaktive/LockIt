@@ -19,49 +19,71 @@ INCLUDE data.mac
 .code
 
 Main    PROC PASCAL
-        push    48h
-        push    79h
-        call    CalculateChecksum
-        mov     bx, ax
+; *** Following code attempts to identify Award BIOS by checksum...
+; Appears to _NOT_ work on oldest Awards... Dammit!!!
+;        push    48h
+;        push    79h
+;        call    CalculateChecksum
+;        mov     bx, ax
+;
+;        push    7Ah
+;        call    ReadCMOSW
+;
+;        cmp     ax, bx
+;        jne     Try_AMI
+;
+;        call    SetAWARD
+;        jmp     short Bye
+;
+;Try_AMI:
 
-        push    7Ah
-        call    ReadCMOSW
+; *** Current algorythm is (in pseudo C-code):
+;
+; if (BIOS_Is_AMI())
+; {
+;    SetAMI();
+; }
+; else
+; {
+;    SetAWARD();
+; }
+; Do_Selected_Exit();
+;
+; *** Stupid, isn't?! Well... Fix it!!!
 
-        cmp     ax, bx
-        jne     Try_AMI
-
-        call    SetAWARD
-        jmp     short Bye
-
-Try_AMI:
-        push    37h
-        push    3Dh
-        call    CalculateChecksum
-        mov     bx, ax
-
+        push    37h                     ; Get AMI extended checksums
+        push    3Dh                     ; (NOTE: this code CAN be optimized!!!)
+        call    CalculateChecksum       ; (OTHER NOTE: It MUST be optimized!!!)
+        mov     bx, ax                  ; (TIP: calculate checksum from 37h to
+                                        ;  7Ch, and subtract values from 3Eh and 3Fh)
         push    40h
         push    7Ch
         call    CalculateChecksum
         add     bx, ax
 
-        push    3Eh
+        push    3Eh                     ; Now, read stored checksum
         call    ReadCMOSW
 
-        cmp     ax, bx
-        jne     Bye
+        cmp     ax, bx                  ; Are both checksums same?
+        jne     Try_AWARD
 
-        call    SetAMI
+        call    SetAMI                  ; If so, we have compatible AMI BIOS
+                                        ; right here!!!
+
+Try_AWARD:
+        call    SetAWARD                ; Well... Doesn't need comments...
+                                        ; Just see pseudo-code above...
 
 Bye:
-        cmp     [ExitMode], 1
+        cmp     [ExitMode], 1           ; Mode 1: Shutdown
         jnz     Not_Kill
         call    KillOS
 Not_Kill:
-        cmp     [ExitMode], 2
+        cmp     [ExitMode], 2           ; Mode 2: SHITdown ;)
         jnz     Not_Hang
         call    HangOS
 Not_Hang:
-        call    Exit
+        call    Exit                    ; Mode 0: Just die...
 ENDP Main
 
 

@@ -1,0 +1,102 @@
+LOCKIT 2.x -- Multi-purpose BIOS Password Locker
+Coded by Stas,
+(C)opyright by SysD Destructive Labs, 1997-2000
+
+
+==============================================================================
+INDEX
+==============================================================================
+
+i.   The Source
+ii.  Compiling It
+
+==============================================================================
+THE SOURCE
+==============================================================================
+
+	If you want to help developing LockIt, there are some things you must
+know. Like LockIt structure, organization and all the same shit. At first,
+organization. Currently, LockIt is compose in Assembly and is stored in
+following files:
+
+core.asm	- Contains code used in both Windows and DOS versions (exlpained later)
+core.inc	- DOS and Windows separated codes must include this
+
+lockit.asm	- Windows (16 bits) version of LockIt
+stub.asm	- DOS version of LockIt. After built, is inserted as Stub in Windows code.
+lockit.inc	- Imported by CORE (used by both DOS/Windows versions)
+
+cmos.asm	- CMOS Access library
+cmos.inc	- Declarations need if using CMOS library
+
+data.mac	- Config Data header; used by Setup program
+
+Makefile	- Instrucions for Make
+DO.bat		- Builds LockIt
+lockit.def	- Some shit for Linker
+Icon.ico	- Guess what ;)
+Lockit.rc	- LockIt resources. At now, just icon
+
+setdown.c       - Setup program for LockIt. It seeks and updates ConfigData header in
+		  binary (post-compiled) LockIt.
+
+...And some documentation, like this you are reading...
+
+	At this moment, you know what all that files means. Now, how it
+was organized? Well, it really was not ;) The thing I can say is that
+LockIt is 2 programs inside one: so, it runs in DOS as in Windows (it
+has no interface). That things like LOCKIT.ASM and STUB.ASM are
+OS-specific, they organizes interface with OS. Inside them, CORE.ASM
+is called to do it's dirty job. All CMOS interface is done by CMOS.ASM
+library. Basically, it can:
+ * Store BYTE and WORD data in CMOS memory (WORD is written to consequent
+   ports, like: high byte in lower port, low byte in higher port)
+ * Read BYTE and WORD data from CMOS memory
+ * Calculate CMOS Checksum.
+
+	Now, about SETDOWN. It's really a strange part. LockIt can be
+configured to set different passwords and in different manners. This
+sucks, but some program must do it!!! This program is called SETDOWN
+(mocked SET-UP ;). The format in which LockIt reads it's configuration
+is stored in DATA.MAC file. SetDown has the same structure inside it,
+which it uses to seek/patch LockIt. If you hadn't seek DATA.MAC file,
+this is how it works: passwords are stored pre-crypted, LockIt just
+patches CMOS with them. But this means that SETDOWN may contain
+password ENcryption code, so it can get password from user and put
+it into LockIt. What more? The format of DATA.MAC is incrementatory:
+new options are added at end, so, old SETDOWN _works_ on new LockIt,
+it just doesn't uses all the power of LockIt... This 'cos SETDOWN
+is able to determine LockIt file's version.
+	Ah, about version: there are 2 numbers. For LockIt that I'm
+documenting now, version is 2.3. Major number means quantity of
+different BIOSes supported (AWARD, AMI at now). The minor number
+has no logic: it increments as patches/bugfixes/expansions are
+added. NOTE: if some day LockIt reaches at 2.9 (I really hope!),
+next version isn't necessary 3.0. If no new BIOS where added, version
+will be 2.10.
+
+	I hope, that's so! Now, if you are decided, open TODO.TXT
+and happy coding!!! When finished, just send your code to Main
+Developer (me). If you have any questions, feel free to ask me
+(see README.TXT for details). If LockIt will gain many developers,
+I promise I'll create dev maillist!!!
+
+==============================================================================
+COMPILING IT
+==============================================================================
+
+        To compile LockIt and SETDOWN, you must have correctly installed
+Borland Turbo C++ 3.0 and Borland Turbo Assembler 5.0 (or later versions).
+Easiest way to build LockIt and SETDOWN is running DO.BAT. It eust executes
+MAKE and cleans all the waste files when finished. There are some usefull (?!)
+options that LockIt's Makefile supports. Here they are:
+ * DEBUG        - Adds debug code to LOCKIT.EXE and SETDOWN.EXE
+ * LOCKITONLY   - Builds LockIt with no SETDOWN
+ * SETDOWNONLY  - Builds SETDOWN with no LockIt
+NOTE: Don't use LOCKITONLY with SETDOWNONLY!!! It's time waste!
+
+        Now, I hope you know how to use these options... Reminder:
+make -DDEBUG -DLOCKITONLY
+(builds LockIt with debugging symbols)
+
+        Good luck!!!

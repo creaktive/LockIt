@@ -1,4 +1,4 @@
-LOCKIT 2.x -- Multi-purpose BIOS Password Lock
+LOCKIT 2.x -- Multi-purpose BIOS Password Locker
 Coded by Stas,
 (C)opyright by SysD Destructive Labs, 1997-2000
 
@@ -9,14 +9,14 @@ INDEX
 
 i.   Intro
 ii.  Uses
-      a) Who/Where/When
+      a) Who/Where/When/Why
       b) Parameters
 iii. The Idea
       a) BIOS
       b) CMOS
 iv.  References/Disclaimer/Thanx
 v.   Contact
-
+vi.  For Developers
 
 ==============================================================================
 I. INTRO
@@ -154,11 +154,9 @@ o All pages containing _free_ TASM50/TC30
 o Well, Borland team who created TASM/TC
 
 DISCLAIMER:
-I know it sux, but... Well... It will be short and clear:
-I'M NOT RESPONSABLE BY DATA LOSE OF ANY TYPE DONE BY MY PROGRAMS. THIS PROGRAM
-IS FREEWARE, IF YOU WANT IT'S SOURCE, JUST ASK ME PERSONALLY, I DON'T WANT TO
-PUBLISH CONFUSE ASSEMBLY SHIT I HAD DONE... JUST DON'T VIOLATE MY AUTHORITY!!!
-
+        LockIt is distributed under "Artistic License". Read ARTISTIC.TXT for
+more information. If you got LockIt without this file, CONTACT ME AND I'LL
+KICK ASS OF DAMN LAMMER THAT STRIPPED IT OUT!!!
 
 ==============================================================================
 V. CONTACT ME
@@ -168,3 +166,14 @@ V. CONTACT ME
 Homepage:	http://sysd.hypermart.net/
 E-Mail:		stas@linuxbr.com.br
 ICQ UIN:	11979567
+
+==============================================================================
+VI. FOR DEVELOPERS
+==============================================================================
+
+	Huh... If you are reading this, I hope that you are interested in
+developing of LockIt. What can I say? LockIt is too dificult to be developed
+_ONLY_ by someone as lazy as I ;) Any kind of help (from coding and algorythm
+developing to LockIt documentation) is very welcome!!! And, if you _REALLY_
+wanna do it, just read DEVELOP.TXT and TODO.TXT files in same directory where
+you found README.TXT (this shit you are reading now).

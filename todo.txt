@@ -1,0 +1,5 @@
+ * Safe BIOS identification code, not just checksum-like
+ * Amplify supported BIOSes list (currently supported: all AWARD and one AMI...)
+ * Optimize code
+ * Optimize *.TXT (docs are "a bit drunk", as Bluefish said 'bout my mail ;)
+ * Create good-looking SETDOWN in C
