@@ -1,0 +1,6 @@
+INCLUDE core.inc
+INCLUDE cmos.inc
+
+GLOBAL  Exit:PROC
+GLOBAL  KillOS:PROC
+GLOBAL  HangOS:PROC

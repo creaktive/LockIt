@@ -1,0 +1,7 @@
+                DB 00Bh, 0ADh, 05Eh, 0EDh                       ; Config mark
+		DB 2, 2						; Version
+                DB 10                                           ; 10 bytes
+ExitMode        DB 000h                                         ; Normal exit
+
+AWARD           DB 0E9h, 065h                                   ; Password:
+AMI             DB 0F0h, 03Dh, 0A8h, 0E6h, 078h, 0A3h, 090h     ; "unlock"

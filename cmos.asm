@@ -1,6 +1,6 @@
 locals
 .286
-.model large, WINDOWS PASCAL
+.model large, PASCAL
 
 GLOBAL  ReadCMOS:PROC
 GLOBAL  WriteCMOS:PROC
